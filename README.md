@@ -1,5 +1,69 @@
 # CarND-Controls-PID
 Self-Driving Car Engineer Nanodegree Program
+[![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
+
+---
+## Intro
+A PID controller continuously calculates an error value (cross track error in this 
+project) as the difference between a desired point (the center of the road) and a 
+measured process variable (the center of the car) and applies a correction based 
+on proportional, integral, and derivative terms (denoted P, I, and D respectively) 
+which give the controller its name. In this project, the goal is to implement a PID 
+Controller to drive a car, in the simulator, on the track safely and as fast as possible.
+
+## The effect of P,I,D component in the car control
+The control target of this project is to keep the car on the track (in the middle of the road).
+Therefore the cross track error (cte) is the distance between the car and the middle of road. 
+The effect of each P,I,D component is described in below:
+
+P component is proportional to the cross track error. Larger cte (more faraway from the road) cause larger control output from P component (turn the steer harder).
+However, large P gain will cause overshoot and oscillation (the car will drive unstably alone the middle of the road).
+
+D component is the method to solve those issue. D is proportional to the changing (derivative) of cte, so it can reduce the changing rate of cte and prevent the car
+from overshoot. 
+
+I component is proportional to the cumulated (integral) cte. It could deal with the system bias (such as steering offset) which cause error keep increase (can't be fixed
+by P and D component). 
+
+The below is the implement in my PID.cpp:
+
+``` cpp
+
+void PID::UpdateError(double cte) {
+    // update CTE (cross-track error) diff_CTE, int_CTE
+    d_error = cte - p_error; // cte - prevouse cte
+    p_error = cte;
+    i_error += cte;
+    return;
+}
+
+double PID::TotalError() {
+    // calculate PID contorl ouptut for steering angle
+    double total = -Kp * p_error -Kd * d_error -Ki * i_error;
+    return total;
+}
+
+```
+
+## How I tune the final hyperparameters?
+
+I add Twiddle function to my PID class and modified `main.cpp` to accept arguments.
+User could pass  4 arguments to set PID component (first three arguments) and, for last argument, set twiddle mode (1 is on, 0 for off).
+For example:
+
+`./pid 1.0 0.03 4.0 1` will start twiddle mode and use `P=1.0, I=0.03, D=4.0` as starting values
+
+and
+
+`./pid 1.0 0.03 4.0 0` will run in autonomous mode with `P=1.0, I=0.03, D=4.0`.
+
+
+After couple hours of tuning in twiddle mode, my final hyperparameters are (Kp, Ki, Kd) = (1.30, 0.01, 6.02). To test, just run with argument:
+
+`./pid`  will run with my final hyperparameters.
+
+
+Below is original README from Udacity.
 
 ---
 
